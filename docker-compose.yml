@@ -1,0 +1,65 @@
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: covoiturage-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - covoiturage-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: covoiturage-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: covoiturage
+      POSTGRES_USER: covoiturage
+      POSTGRES_PASSWORD: covoiturageadmin
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U covoiturage -d covoiturage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - covoiturage-network
+
+  # pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: covoiturage-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@covoiturage.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - covoiturage-network
+
+# Persistent volumes
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+# Application network
+networks:
+  covoiturage-network:
+    driver: bridge
