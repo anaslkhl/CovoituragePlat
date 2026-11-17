@@ -1,4 +1,14 @@
+
 package com.app.covoiturage.dto.response;
 
-public class ConducteurResponse {
+import java.util.UUID;
+
+public record ConducteurResponse(
+        UUID id,
+        String nom,
+        String prenom,
+        String email,
+        String telephone,
+        String numeroPermis
+) {
 }
